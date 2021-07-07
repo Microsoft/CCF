@@ -259,7 +259,7 @@ namespace ccf
       return tx.commit_version();
     }
 
-    crypto::Sha256Hash hash_new_view(ViewChangeConfirmation& new_view)
+    crypto::Sha256Hash hash_new_view(const ViewChangeConfirmation& new_view)
     {
       auto ch = crypto::make_incremental_sha256();
 

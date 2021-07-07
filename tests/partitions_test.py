@@ -134,6 +134,7 @@ def run(args):
 
     with infra.network.network(
         args.nodes,
+        args.consensus,
         args.binary_dir,
         args.debug_nodes,
         args.perf_nodes,
@@ -144,8 +145,9 @@ def run(args):
         network.start_and_join(args)
 
         test_invalid_partitions(network, args)
-        test_partition_majority(network, args)
-        test_isolate_primary_from_one_backup(network, args)
+        if args.consensus == "cft":
+            test_partition_majority(network, args)
+            test_isolate_primary_from_one_backup(network, args)
         for _ in range(5):
             test_isolate_and_reconnect_primary(network, args)
 
