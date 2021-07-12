@@ -250,24 +250,21 @@ namespace asynchost
       messaging::Dispatcher<ringbuffer::Message>& disp)
     {
       DISPATCHER_SET_MESSAGE_HANDLER(
-        disp, ccf::add_node, [this](const uint8_t* data, size_t size) {
+        disp,
+        ccf::associate_node_address,
+        [this](const uint8_t* data, size_t size) {
           auto [id, hostname, service] =
-            ringbuffer::read_message<ccf::add_node>(data, size);
+            ringbuffer::read_message<ccf::associate_node_address>(data, size);
+          // TODO: Just add association, don't try to open a session now?
           add_node(id, hostname, service);
-        });
-
-      DISPATCHER_SET_MESSAGE_HANDLER(
-        disp, ccf::remove_node, [this](const uint8_t* data, size_t size) {
-          auto [id] = ringbuffer::read_message<ccf::remove_node>(data, size);
-          remove_node(id);
         });
 
       DISPATCHER_SET_MESSAGE_HANDLER(
         disp, ccf::node_outbound, [this](const uint8_t* data, size_t size) {
           // Read piece-by-piece rather than all at once
           ccf::NodeId to = serialized::read<ccf::NodeId::Value>(data, size);
-          auto node = find(to, true);
 
+          auto node = find(to, true);
           if (!node)
           {
             return;
@@ -413,12 +410,11 @@ namespace asynchost
     {
       if (outgoing.erase(node) < 1)
       {
-        LOG_FAIL_FMT("Cannot remove node connection {}: does not exist", node);
+        LOG_DEBUG_FMT("Cannot remove node connection {}: does not exist", node);
         return false;
       }
 
       LOG_DEBUG_FMT("Removed outgoing node connection with {}", node);
-
       return true;
     }
 
