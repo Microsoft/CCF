@@ -183,14 +183,10 @@ namespace ccf::historical
         // we already had, or a signature in the range we already had, but
         // working that out is tricky so be pessimistic and refetch instead.
         supporting_signature.reset();
-        const auto last_details = get_store_details(last_requested_seqno);
-        if (last_details->store != nullptr && !last_details->is_signature)
-        {
-          const auto next_seqno = last_requested_seqno + 1;
-          supporting_signature =
-            std::make_pair(next_seqno, std::make_shared<StoreDetails>());
-          ret.insert(next_seqno);
-        }
+        const auto next_seqno = last_requested_seqno + 1;
+        supporting_signature =
+          std::make_pair(next_seqno, std::make_shared<StoreDetails>());
+        ret.insert(next_seqno);
 
         // If the range has changed, forget what ledger secrets we may have been
         // fetching - the caller can begin asking for them again
@@ -740,8 +736,16 @@ namespace ccf::historical
 
     StatePtr get_state_at(RequestHandle handle, ccf::SeqNo seqno) override
     {
+      return get_state_at(handle, seqno, default_expiry_duration);
+    }
+
+    StatePtr get_state_at(
+      RequestHandle handle,
+      ccf::SeqNo seqno,
+      ExpiryDuration seconds_until_expiry) override
+    {
       auto range =
-        get_store_range_internal(handle, seqno, 1, default_expiry_duration);
+        get_store_range_internal(handle, seqno, 0, default_expiry_duration);
 
       if (range.empty())
       {
