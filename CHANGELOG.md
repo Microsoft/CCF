@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Added support for listening on multiple interfaces for incoming client RPCs, with individual session caps (#2628).
+
 ## [2.0.0-dev2]
 
 ### Changed
@@ -15,6 +21,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - Nodes code digests are now extracted and cached at network join time in `public:ccf.gov.nodes.info`, and the `/node/quotes` and `/node/quotes/self` endpoints will use this cached value whenever possible (#2651).
+
+### Added
+
+- Added support for listening on multiple interfaces for incoming client RPCs, with individual session caps (#2628).
 
 ### Removed
 

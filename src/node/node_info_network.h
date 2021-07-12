@@ -11,14 +11,38 @@ namespace ccf
 {
   struct NodeInfoNetwork
   {
-    std::string rpchost;
-    std::string pubhost;
-    std::string nodehost;
-    std::string nodeport;
-    std::string rpcport;
-    std::string pubport;
+    struct NetAddress
+    {
+      std::string hostname;
+      std::string port;
+
+      bool operator==(const NetAddress& other) const
+      {
+        return hostname == other.hostname && port == other.port;
+      }
+    };
+
+    struct RpcAddresses
+    {
+      NetAddress rpc_address;
+      NetAddress public_rpc_address;
+
+      size_t max_open_sessions_soft;
+      size_t max_open_sessions_hard;
+    };
+
+    NetAddress node_address;
+    std::vector<RpcAddresses> rpc_interfaces;
   };
-  DECLARE_JSON_TYPE(NodeInfoNetwork);
+  DECLARE_JSON_TYPE(NodeInfoNetwork::NetAddress);
+  DECLARE_JSON_REQUIRED_FIELDS(NodeInfoNetwork::NetAddress, hostname, port);
+  DECLARE_JSON_TYPE(NodeInfoNetwork::RpcAddresses);
   DECLARE_JSON_REQUIRED_FIELDS(
-    NodeInfoNetwork, rpchost, pubhost, nodehost, nodeport, rpcport, pubport);
+    NodeInfoNetwork::RpcAddresses,
+    rpc_address,
+    public_rpc_address,
+    max_open_sessions_soft,
+    max_open_sessions_hard);
+  DECLARE_JSON_TYPE(NodeInfoNetwork);
+  DECLARE_JSON_REQUIRED_FIELDS(NodeInfoNetwork, node_address, rpc_interfaces);
 }

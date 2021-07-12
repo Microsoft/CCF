@@ -1566,27 +1566,55 @@ namespace ccf
 
     SessionMetrics get_session_metrics() override
     {
-      SessionMetrics sm;
-      rpcsessions->get_stats(sm.active, sm.peak, sm.soft_cap, sm.hard_cap);
-      return sm;
+      return rpcsessions->get_session_metrics();
     }
 
   private:
-    crypto::SubjectAltName get_subject_alt_name()
+    bool is_ip(const std::string& hostname)
     {
-      // If a domain is passed at node creation, record domain in SAN for node
-      // hostname authentication over TLS. Otherwise, record IP in SAN.
-      bool san_is_ip = config.domain.empty();
-      return {san_is_ip ? config.node_info_network.rpchost : config.domain,
-              san_is_ip};
+      // IP address components are purely numeric. DNS names may be largely
+      // numeric, but at least the final component (TLD) must not be
+      // all-numeric. So this distinguishes "1.2.3.4" (and IP address) from
+      // "1.2.3.c4m" (a DNS name). "1.2.3." is invalid for either, and will
+      // throw. Attempts to handle IPv6 by also splitting on ':', but this is
+      // untested.
+      const auto final_component =
+        nonstd::split(nonstd::split(hostname, ".").back(), ":").back();
+      if (final_component.empty())
+      {
+        throw std::runtime_error(fmt::format(
+          "{} has a trailing period, is not a valid hostname",
+          final_component));
+      }
+      for (const auto c : final_component)
+      {
+        if (c < '0' || c > '9')
+        {
+          return false;
+        }
+      }
+
+      return true;
     }
 
     std::vector<crypto::SubjectAltName> get_subject_alternative_names()
     {
-      std::vector<crypto::SubjectAltName> sans =
-        config.subject_alternative_names;
-      sans.push_back(get_subject_alt_name());
-      return sans;
+      if (!config.subject_alternative_names.empty())
+      {
+        return config.subject_alternative_names;
+      }
+      else
+      {
+        // Construct SANs from RPC interfaces, manually detecting whether each
+        // is a domain name or IP
+        std::vector<crypto::SubjectAltName> sans;
+        for (const auto& interface : config.node_info_network.rpc_interfaces)
+        {
+          sans.push_back({interface.rpc_address.hostname,
+                          is_ip(interface.rpc_address.hostname)});
+        }
+        return sans;
+      }
     }
 
     Pem create_self_signed_node_cert()

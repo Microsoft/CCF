@@ -158,8 +158,8 @@ namespace enclave
 
       start_type = start_type_;
 
-      rpcsessions->set_max_open_sessions(
-        ccf_config_.max_open_sessions_soft, ccf_config_.max_open_sessions_hard);
+      rpcsessions->update_listening_interface_caps(
+        ccf_config_.node_info_network);
 
       ccf::NodeCreateInfo r;
       try
