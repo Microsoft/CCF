@@ -1067,6 +1067,8 @@ namespace aft
       const uint8_t* data,
       size_t size)
     {
+      LOG_INFO_FMT("Receiving view change evidence from {} for view {}", from, r.view);
+
       auto node = nodes.find(from);
       if (node == nodes.end())
       {
@@ -1075,6 +1077,15 @@ namespace aft
           "Recv view change evidence to {} from {}: unknown node",
           state->my_node_id,
           from);
+        return;
+      }
+
+      if (state->current_view >= r.view)
+      {
+        LOG_INFO_FMT(
+          "Received evidence for {} but we are in {}",
+          r.view,
+          state->current_view);
         return;
       }
 
